@@ -1,0 +1,19 @@
+#\uc6f9\uc124\uc815 
+spring.mvc.view.prefix=/WEB-INF/jsp/
+spring.mvc.view.suffix=.jsp
+server.port=8080
+server.servlet.context-path=/MOM
+tomcat.version=8.0.5
+
+#MariaDB
+spring.datasource.driverClassName=org.mariadb.jdbc.Driver
+spring.datasource.url=jdbc:mariadb://211.189.132.191:3306/solsdb_db
+spring.datasource.username=mom_test
+spring.datasource.password=test1234
+#Hikari
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=5000
+#css \uc11c\ubc84 \uc7ac\uac00\ub3d9 x
+spring.devtools.livereload.enabled=true 
+spring.freemarker.cache=false

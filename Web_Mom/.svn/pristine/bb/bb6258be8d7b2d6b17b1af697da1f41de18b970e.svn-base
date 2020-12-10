@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mapper.MomMapper">
+
+	<select id="getProject" resultType="com.example.vo.ProjectVO">
+		SELECT 
+			t1.member_cd AS memberCd,
+			t3.proj_id AS projId,
+			t1.USER_NAME AS userName,
+			t2.part_name AS partName,
+			t4.proj_nm AS projName,
+			t3.proj_spec_plan AS projSpecPlan,
+			t3.proj_spec_perf AS projSpecPerf,
+			t5.proj_date AS projDate,
+			t5.proj_plan AS projPlan,
+			t5.proj_perf AS projPerf,
+			t2.part_code AS partCode
+			FROM member t1
+			LEFT join part t2 ON (t2.part_code = t1.part)
+			RIGHT JOIN mom_ps_mpng t3 ON(t3.member_cd = t1.MEMBER_CD)
+			LEFT JOIN mom_project t4 ON(t4.proj_id = t3.proj_id)
+			LEFT JOIN mom_pm_mpng t5 ON(t3.MEMBER_CD = t5.member_cd AND t3.proj_id = t5.proj_id)
+			WHERE t1.dept_sn = 13
+			AND t2.part_name IS NOT NULL
+			AND t1.use_flag = 1
+			ORDER BY t1.part, t1.USER_NAME, t3.proj_id, t5.proj_date;
+	</select>
+	
+	<select id="chkProj" resultType="Integer" parameterType="Map">
+		SELECT COUNT(*)
+		FROM mom_pm_mpng
+		WHERE member_cd = #{memberCd}
+		 AND proj_id = #{projId}
+		 AND proj_date like #{projDate};
+	</select>
+	
+	<select id="chkDuplication" resultType="Integer" parameterType="Map">
+		SELECT COUNT(*)
+		FROM mom_project
+		WHERE proj_id = #{projId};
+	</select>
+	
+	<select id="getSpec" resultType="com.example.vo.ProjectSpecVO" parameterType="com.example.cmmn.PaginationInfo">
+		SELECT proj_id AS projId, member_cd AS memberCd, proj_spec_plan AS projSpecPlan,  proj_spec_perf AS projSpecPerf
+		FROM mom_ps_mpng
+		LIMIT #{firstRecordIndex}, #{recordCountPerPage};
+	</select>
+	
+	<select id="getSpecCount" resultType="Integer">
+		SELECT COUNT(*)
+		FROM mom_ps_mpng;
+	</select>
+	
+	<insert id="insertProjectPlan" parameterType="Map">
+		INSERT INTO mom_pm_mpng 
+		VALUE(
+			#{projId}, #{memberCd}, #{projDate}, #{projPlan}, 0
+		);
+	</insert>
+	
+	<insert id="insertProjectPerf" parameterType="Map">
+		INSERT INTO mom_pm_mpng 
+		VALUE(
+			#{projId}, #{memberCd}, #{projDate}, 0, #{projPerf}
+		);
+	</insert>
+	
+	<select id="myProjectList" resultType="com.example.vo.ProjectVO" parameterType="Map">
+		SELECT 
+			t1.member_cd AS memberCd,
+			t3.proj_id AS projId,
+			t1.USER_NAME AS userName,
+			t2.part_name AS partName,
+			t4.proj_nm AS projName,
+			t3.proj_spec_plan AS projSpecPlan,
+			t3.proj_spec_perf AS projSpecPerf,
+			t5.proj_date AS projDate,
+			t5.proj_plan AS projPlan,
+			t5.proj_perf AS projPerf,
+			t2.part_code AS partCode
+			FROM member t1
+			LEFT join part t2 ON (t2.part_code = t1.part)
+			RIGHT JOIN mom_ps_mpng t3 ON(t3.member_cd = t1.MEMBER_CD)
+			LEFT JOIN mom_project t4 ON(t4.proj_id = t3.proj_id)
+			LEFT JOIN mom_pm_mpng t5 ON(t3.MEMBER_CD = t5.member_cd AND t3.proj_id = t5.proj_id)
+			WHERE t1.dept_sn = 13
+			AND t2.part_name IS NOT NULL
+			AND t1.use_flag = 1
+			AND t1.MEMBER_CD = #{inpData}
+			ORDER BY t1.part, t1.USER_NAME, t3.proj_id, t5.proj_date;
+	</select>
+	
+	<select id="getMember" resultType="com.example.vo.MemberVO">
+		select t1.member_cd as memberCd
+		     , t1.user_name as userName
+		     , t2.part_name as partName
+		     , t2.part_code as partCode
+		  from member t1
+		  left join part t2 on (t2.part_code = t1.part)
+		 where t1.dept_sn = 13
+		   and t2.part_name is not null
+		   and t1.use_flag = 1
+		 order by t1.part, t1.user_name
+	</select>
+
+   <select id="getProjectList" resultType="com.example.vo.ProjectListVO">
+		select project_code AS projectCode, project_name AS projectName
+		  from project
+		  where dept_sn = 13
+		   and substring(progress_code, 1, 2) &lt;&gt; '05'
+		  order by project_code DESC;
+   </select>
+	
+	<insert id="insertMomProject" parameterType="hashMap">
+		INSERT INTO
+		mom_project
+		values(#{projId}, #{projName});
+	</insert>
+	
+	<insert id="insertPs" parameterType="hashMap">
+		INSERT INTO
+		mom_ps_mpng
+		values(#{projId}, #{memberCd}, #{projSpecPlan}, #{projSpecPerf});
+	</insert>
+	
+	<update id="updateProjectPlan" parameterType="Map">
+		UPDATE mom_pm_mpng
+		SET proj_plan = #{projPlan}
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd} 
+		AND proj_date like #{projDate};
+	</update>
+	
+	<update id="updateProjectPerf" parameterType="Map">
+		UPDATE mom_pm_mpng
+		SET proj_perf = #{projPerf}
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd} 
+		AND proj_date like #{projDate};
+	</update>
+	
+	<update id="updSpec" parameterType="Map">
+		UPDATE mom_ps_mpng
+		SET proj_spec_plan = #{projSpecPlan}, proj_spec_perf = #{projSpecPerf}
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd}
+	</update>
+	
+	<update id="updSpecPerf" parameterType="Map">
+		UPDATE mom_ps_mpng
+		SET proj_spec_perf = #{projSpecPerf}
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd}
+	</update>
+	
+	<update id="updSpecPlan" parameterType="Map">
+		UPDATE mom_ps_mpng
+		SET proj_spec_plan = #{projSpecPlan}
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd}
+	</update>
+	
+	<delete id="deleteProject" parameterType="Map">
+		DELETE FROM mom_ps_mpng
+		WHERE proj_id = #{projId} AND member_cd = #{memberCd};
+	</delete>
+
+</mapper>
